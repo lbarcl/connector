@@ -66,17 +66,16 @@ class response{
         return !flag;
     }
 
-    public getRaw(): Promise<Buffer> {
-        return new Promise<Buffer>((resolve, reject) => {
-            while (!this.done) { }
-            if (this.body) {
-                resolve(this.body);
-            }
-        });
+    public getRaw(): Buffer {
+        if (this.body && this.done) {
+            return this.body;
+        } else {
+            throw new Error("Response not finished");
+        }
     }
 
     public async getText(encoding: BufferEncoding = 'ascii'): Promise<string> { 
-        return (await this.getRaw()).toString(encoding);
+        return this.getRaw().toString(encoding);
     }
 
 }

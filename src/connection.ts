@@ -9,7 +9,7 @@ class connection {
     private socket: net.Socket;
     private urlObj: url.URL;
 
-    public connected: boolean = false;
+    protected connected: boolean = false;
     public headers: {[key: string]: string | number} = {};
 
     constructor(Target: string) {
@@ -22,12 +22,17 @@ class connection {
         this.socket = new net.Socket();    
 
         this.setHeader("Host", this.urlObj.hostname);
+
+        this.socket.on("error", (error: Error) => {
+            throw error;
+        });
+        this.socket.on("close", () => this.connected = false);
     }
 
     public connect(): Promise<boolean> { 
         return new Promise((resolve, reject) => {
             try {
-                console.log('connecting')
+                if (this.connected) resolve(true);
                 if (this.urlObj.protocol === "https:") {
                     const tlsContext = tls.createSecureContext({maxVersion: 'TLSv1.3', minVersion: 'TLSv1.2'});
                     this.socket = tls.connect(this.port, this.host, { rejectUnauthorized: false, servername: this.host, secureContext: tlsContext }, () => { });
@@ -49,7 +54,8 @@ class connection {
     public disconnect(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             try {
-                console.log('disconnecting')
+                //console.log('disconnecting')
+                if (this.connected) resolve(true);
                 this.socket.connect(this.port, this.host);
                 this.socket.once('close', () => {
                     this.connected = false;
@@ -106,9 +112,7 @@ class connection {
                 }
             });
 
-            this.socket.once("error", (error: Error) => {
-                reject(error);
-            });
+            
         });
     }
 

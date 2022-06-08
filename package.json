@@ -1,5 +1,5 @@
 {
-  "name": "connector",
+  "name": "coronncet",
   "version": "1.0.0",
   "description": "A HTTP client for devs that love low-level communication",
   "main": "dist/index.cjs.min.js",
