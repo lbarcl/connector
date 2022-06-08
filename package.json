@@ -1,12 +1,18 @@
 {
   "name": "coronncet",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "A HTTP client for devs that love low-level communication",
-  "main": "dist/index.cjs.min.js",
-  "module": "dist/index.es.min.js",
+  "main": "dist/index.min.js",
+  "module": "dist/es/index.es.min.js",
+  "umd": "dist/umd/index.umd.min.js",
+  "cjs": "dist/cjs/index.cjs.min.js",
   "types": "dist/index.d.ts",
+
+  "exports": {
+    "import": "./dist/es/index.es.min.js",
+    "require": "./dist/cjs/index.cjs.min.js"
+  },
   "files": ["dist"],
-  "type": "module",
   "scripts": {
     "jest": "jest --detectOpenHandles --forceExit",
     "build": "tsc",
