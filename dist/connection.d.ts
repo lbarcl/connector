@@ -5,7 +5,7 @@ declare class connection {
     private host;
     private socket;
     private urlObj;
-    connected: boolean;
+    protected connected: boolean;
     headers: {
         [key: string]: string | number;
     };

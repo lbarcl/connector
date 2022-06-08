@@ -1231,17 +1231,15 @@ class response {
   }
 
   getRaw() {
-    return new Promise((resolve, reject) => {
-      while (!this.done) {}
-
-      if (this.body) {
-        resolve(this.body);
-      }
-    });
+    if (this.body && this.done) {
+      return this.body;
+    } else {
+      throw new Error("Response not finished");
+    }
   }
 
   async getText(encoding = 'ascii') {
-    return (await this.getRaw()).toString(encoding);
+    return this.getRaw().toString(encoding);
   }
 
 }
@@ -1261,12 +1259,16 @@ class connection {
     this.host = this.urlObj.hostname;
     this.socket = new net.Socket();
     this.setHeader("Host", this.urlObj.hostname);
+    this.socket.on("error", error => {
+      throw error;
+    });
+    this.socket.on("close", () => this.connected = false);
   }
 
   connect() {
     return new Promise((resolve, reject) => {
       try {
-        console.log('connecting');
+        if (this.connected) resolve(true);
 
         if (this.urlObj.protocol === "https:") {
           const tlsContext = tls.createSecureContext({
@@ -1296,7 +1298,7 @@ class connection {
   disconnect() {
     return new Promise((resolve, reject) => {
       try {
-        console.log('disconnecting');
+        if (this.connected) resolve(true);
         this.socket.connect(this.port, this.host);
         this.socket.once('close', () => {
           this.connected = false;
@@ -1355,9 +1357,6 @@ class connection {
             resolve(res);
           }
         }
-      });
-      this.socket.once("error", error => {
-        reject(error);
       });
     });
   }

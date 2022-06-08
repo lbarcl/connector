@@ -11,7 +11,7 @@ declare class response {
     constructor();
     write(chunk: Buffer): boolean;
     private parseHeader;
-    getRaw(): Promise<Buffer>;
+    getRaw(): Buffer;
     getText(encoding?: BufferEncoding): Promise<string>;
 }
 export { response };
