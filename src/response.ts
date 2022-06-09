@@ -6,10 +6,12 @@ class response{
     private data: Buffer[] = [];
     private done: boolean = false;
     private headerDone: boolean = false;
+    private method: string | undefined;
 
-    constructor() {
+    constructor(method?: string) {
         this.statusCode = 200;
         this.headers = {};
+        if (method) this.method = method;
     }
 
     public write(chunk: Buffer): boolean { 
@@ -17,7 +19,11 @@ class response{
         if (!this.headerDone) {
             if (this.parseHeader(chunk)) {
                 this.headerDone = true;
-                checkLength(this.data[0].length, this);
+                if (this.method == "HEAD") {
+                    this.done = true;
+                } else {
+                    checkLength(this.data[0].length, this);
+                }
             }
         } else {
             this.data.push(chunk);
@@ -69,12 +75,15 @@ class response{
     public getRaw(): Buffer {
         if (this.body && this.done) {
             return this.body;
-        } else {
+        } else if (this.method == "HEAD") {
+            throw new Error("This function is not supported in HEAD method");
+        }
+        else {
             throw new Error("Response not finished");
         }
     }
 
-    public async getText(encoding: BufferEncoding = 'ascii'): Promise<string> { 
+    public getText(encoding: BufferEncoding = 'ascii'): string { 
         return this.getRaw().toString(encoding);
     }
 

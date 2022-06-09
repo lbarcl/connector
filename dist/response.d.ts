@@ -8,11 +8,12 @@ declare class response {
     private data;
     private done;
     private headerDone;
-    constructor();
+    private method;
+    constructor(method?: string);
     write(chunk: Buffer): boolean;
     private parseHeader;
     getRaw(): Buffer;
-    getText(encoding?: BufferEncoding): Promise<string>;
+    getText(encoding?: BufferEncoding): string;
 }
 export { response };
 //# sourceMappingURL=response.d.ts.map

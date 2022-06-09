@@ -7,15 +7,14 @@ supports both commonjs and es.
 * Its directly made on top of Node.js TCP API.
 * It supports both HTTP and HTTPS. (TLSv1.2 and TLSv1.3)
 * Doesn't close the connection after each request.
-* It supports both High and Low level API.
 * It has types by TypeScript.
 * It supports HTTP/1.1.
 
-# Low level API
+# Coronncet API
 ```typescript
-import { connection } from 'coronncet';
+import { HTTPAgent } from 'coronncet';
 
-const conn = connection('https://www.example.com');
+const conn = new HTTPAgent('https://www.example.com');
 conn.connect(); // Async function
 const resp = await conn.get('/'); // Async function
 conn.disconnect(); // Async function
@@ -26,10 +25,14 @@ conn.disconnect(); // Async function
 3. We are calling `get()` on the connection object and returns the response object.
 4. We are calling `disconnect()` on the connection object.
 
-## Connection
-Is the class that responsible for creating a connection and maintaining it.
+## HTTPAgent
+Is the class that responsible for creating a http agent and maintaining it.
+It is the child class of `HTTPConnection`. 
+Difrence beetwen them is that `HTTPAgent` has built in http methods.
+
+Option timeout is used for responses that has not `Content-Length` header.
 ```tpyeScript
-connection(Url: string): Connection;
+connection(Url: string, Options?: { timeout?: number}): Connection;
 ```
 
 ### .connect()
@@ -56,6 +59,18 @@ Its returns a promise that resolves when the response is received.
 ```typescript
 connection.get(path: string): Promise<Response>;
 ```
+
+### .post(path, body)
+Sends a POST request to the server for the given path.
+Its returns a promise that resolves when the response is received.
+
+```typescript
+connection.post(path: string, body: any): Promise<Response>;
+```
+
+> Most of the HTTP methods same as `.get()` and `.post()`.
+>
+> Supported HTTP methods: GET, POST, PUT, DELETE, HEAD, PATCH
 
 ### .disconnect()
 Disconnects from the server. Its same as the `connect()` function.
@@ -86,6 +101,8 @@ Returns the body of the response as a string. With encoded as the parameter of t
 ```typescript
 response.getText(encoding: string): string;
 ```
+
+> If sended request is a HEAD request `.getText()` and `.getRaw()` will throw error.
 
 ### .statusCode
 Type of number. It contains the status code of the response.

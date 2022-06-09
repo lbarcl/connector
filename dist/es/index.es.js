@@ -28,13 +28,14 @@ function __awaiter(thisArg, _arguments, P, generator) {
 }
 
 class response {
-  constructor() {
+  constructor(method) {
     this.body = null;
     this.data = [];
     this.done = false;
     this.headerDone = false;
     this.statusCode = 200;
     this.headers = {};
+    if (method) this.method = method;
   }
 
   write(chunk) {
@@ -43,7 +44,12 @@ class response {
     if (!this.headerDone) {
       if (this.parseHeader(chunk)) {
         this.headerDone = true;
-        checkLength(this.data[0].length, this);
+
+        if (this.method == "HEAD") {
+          this.done = true;
+        } else {
+          checkLength(this.data[0].length, this);
+        }
       }
     } else {
       this.data.push(chunk);
@@ -94,23 +100,24 @@ class response {
   getRaw() {
     if (this.body && this.done) {
       return this.body;
+    } else if (this.method == "HEAD") {
+      throw new Error("This function is not supported in HEAD method");
     } else {
       throw new Error("Response not finished");
     }
   }
 
   getText(encoding = 'ascii') {
-    return __awaiter(this, void 0, void 0, function* () {
-      return this.getRaw().toString(encoding);
-    });
+    return this.getRaw().toString(encoding);
   }
 
 }
 
-class connection {
-  constructor(Target) {
+class HTTPConnection {
+  constructor(Target, options) {
     this.connected = false;
     this.headers = {};
+    this.timeout = 5000;
     this.urlObj = new url.URL(Target);
     this.port = Number(this.urlObj.port) || this.urlObj.protocol === "https:" ? 443 : 80;
     if (!this.urlObj.hostname) throw new Error("Invalid URL");
@@ -121,6 +128,10 @@ class connection {
       throw error;
     });
     this.socket.on("close", () => this.connected = false);
+
+    if (options) {
+      this.timeout = options.timeout || this.timeout;
+    }
   }
 
   connect() {
@@ -202,13 +213,11 @@ class connection {
     }
   }
 
-  recive() {
+  recive(method) {
     return new Promise((resolve, reject) => {
-      let res = new response();
+      let res = new response(method);
       let flag = false;
       this.socket.on('data', data => {
-        console.log('reciving');
-
         if (!flag) {
           if (res.write(data)) {
             flag = true;
@@ -216,7 +225,17 @@ class connection {
           }
         }
       });
+      setTimeout(() => {
+        if (!res.headers['Content-Length']) resolve(res);
+      }, this.timeout);
     });
+  }
+
+}
+
+class HTTPClient extends HTTPConnection {
+  constructor(Target, options) {
+    super(Target, options);
   }
 
   get(url) {
@@ -225,11 +244,61 @@ class connection {
       console.log("sending request");
       let request = this.formatRequest("GET", url, this.headers);
       this.send(Buffer.from(request, 'ascii'));
-      const response = yield this.recive();
+      const response = yield this.recive('GET');
+      return response;
+    });
+  }
+
+  post(url, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+      if (!this.connected) throw new Error("Must be connected to send request");
+      let request = this.formatRequest("POST", url, this.headers, body);
+      this.send(Buffer.from(request, 'ascii'));
+      const response = yield this.recive('POST');
+      return response;
+    });
+  }
+
+  put(url, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+      if (!this.connected) throw new Error("Must be connected to send request");
+      let request = this.formatRequest("PUT", url, this.headers, body);
+      this.send(Buffer.from(request, 'ascii'));
+      const response = yield this.recive('PUT');
+      return response;
+    });
+  }
+
+  delete(url, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+      if (!this.connected) throw new Error("Must be connected to send request");
+      let request = this.formatRequest("DELETE", url, this.headers, body);
+      this.send(Buffer.from(request, 'ascii'));
+      const response = yield this.recive('DELETE');
+      return response;
+    });
+  }
+
+  head(url) {
+    return __awaiter(this, void 0, void 0, function* () {
+      if (!this.connected) throw new Error("Must be connected to send request");
+      let request = this.formatRequest("HEAD", url, this.headers);
+      this.send(Buffer.from(request, 'ascii'));
+      const response = yield this.recive('HEAD');
+      return response;
+    });
+  }
+
+  patch(url, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+      if (!this.connected) throw new Error("Must be connected to send request");
+      let request = this.formatRequest("PATCH", url, this.headers, body);
+      this.send(Buffer.from(request, 'ascii'));
+      const response = yield this.recive('PATCH');
       return response;
     });
   }
 
 }
 
-export { connection, response };
+export { HTTPClient, HTTPConnection, response };

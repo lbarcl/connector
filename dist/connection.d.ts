@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { response } from "./response.js";
-declare class connection {
+declare class HTTPConnection {
     private port;
     private host;
     private socket;
@@ -9,15 +9,30 @@ declare class connection {
     headers: {
         [key: string]: string | number;
     };
-    constructor(Target: string);
+    timeout: number;
+    constructor(Target: string, options?: {
+        timeout?: number;
+    });
     connect(): Promise<boolean>;
     disconnect(): Promise<boolean>;
-    private formatRequest;
+    protected formatRequest(method: string, url: string, headers: {
+        [key: string]: string | number;
+    }, body?: any): string;
     setHeader(key: string, value: string | number): void;
     removeHeader(key: string): void;
     send(data: Buffer): void;
-    private recive;
-    get(url: string): Promise<response>;
+    protected recive(method: string): Promise<response>;
 }
-export { connection };
+declare class HTTPClient extends HTTPConnection {
+    constructor(Target: string, options?: {
+        timeout?: number;
+    });
+    get(url: string): Promise<response>;
+    post(url: string, body: any): Promise<response>;
+    put(url: string, body: any): Promise<response>;
+    delete(url: string, body: any): Promise<response>;
+    head(url: string): Promise<response>;
+    patch(url: string, body: any): Promise<response>;
+}
+export { HTTPConnection, HTTPClient };
 //# sourceMappingURL=connection.d.ts.map
