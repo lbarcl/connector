@@ -1,9 +1,10 @@
 import net from "net";
 import tls from "tls";
 import url from "url";
-import {response} from "./response.js";
+import { response } from "./response.js";
+import EventEmitter from "events";
 
-class HTTPConnection {
+class HTTPConnection extends EventEmitter {
     private port: number;
     private host: string;
     private socket: net.Socket;
@@ -13,7 +14,8 @@ class HTTPConnection {
     public headers: { [key: string]: string | number } = {};
     public timeout: number = 5000;
 
-    constructor(Target: string, options?: {timeout?: number}) {
+    constructor(Target: string, options?: { timeout?: number }) {
+        super();
         this.urlObj = new url.URL(Target);
         this.port = Number(this.urlObj.port) || this.urlObj.protocol === "https:" ? 443 : 80;
         
@@ -106,15 +108,13 @@ class HTTPConnection {
     protected recive(method: string): Promise<response> {
         return new Promise((resolve, reject) => {
             let res: response = new response(method);
-            let flag = false;
             this.socket.on('data', (data: Buffer) => { 
-                //console.log('reciving')
-                if (!flag) {
-                    if (res.write(data)) {
-                        flag = true;
-                        resolve(res);
-                    }
+                this.emit('data', data);
+                if (res.write(data)) {
+                    this.socket.removeAllListeners('data');
+                    resolve(res);
                 }
+            
             });
 
             setTimeout(() => {

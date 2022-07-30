@@ -1,6 +1,8 @@
 /// <reference types="node" />
+/// <reference types="node" />
 import { response } from "./response.js";
-declare class HTTPConnection {
+import EventEmitter from "events";
+declare class HTTPConnection extends EventEmitter {
     private port;
     private host;
     private socket;

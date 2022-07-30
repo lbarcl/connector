@@ -1,6 +1,7 @@
 import net from 'net';
 import tls from 'tls';
 import url from 'url';
+import EventEmitter from 'events';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -113,8 +114,9 @@ class response {
 
 }
 
-class HTTPConnection {
+class HTTPConnection extends EventEmitter {
   constructor(Target, options) {
+    super();
     this.connected = false;
     this.headers = {};
     this.timeout = 5000;
@@ -216,13 +218,12 @@ class HTTPConnection {
   recive(method) {
     return new Promise((resolve, reject) => {
       let res = new response(method);
-      let flag = false;
       this.socket.on('data', data => {
-        if (!flag) {
-          if (res.write(data)) {
-            flag = true;
-            resolve(res);
-          }
+        this.emit('data', data);
+
+        if (res.write(data)) {
+          this.socket.removeAllListeners('data');
+          resolve(res);
         }
       });
       setTimeout(() => {

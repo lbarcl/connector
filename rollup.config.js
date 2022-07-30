@@ -23,7 +23,7 @@ export default [
     output: {
       file: 'dist/umd/index.umd.min.js',
       format: 'umd',
-      name: 'Connector',
+      name: 'coronncet',
       indent: false,
     },
     plugins: [
@@ -49,17 +49,5 @@ export default [
             commonjs()
 
         ],
-    },
-
-    {
-      input: 'src/index.ts',
-      output: {
-          file: 'dist/index.min.js',
-          indent: false,
-      },
-      plugins: [
-          typescript(),
-          babel({ extensions: ['.ts'], exclude: 'node_modules/**' }),
-      ],
-    } 
+    }
 ]
