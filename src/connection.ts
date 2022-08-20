@@ -131,7 +131,6 @@ class HTTPClient extends HTTPConnection {
 
     public async get(url: string): Promise<response> {
         if (!this.connected) throw new Error("Must be connected to send request");
-        console.log("sending request")
         let request = this.formatRequest("GET", url, this.headers);
         this.send(Buffer.from(request, 'ascii'));
 

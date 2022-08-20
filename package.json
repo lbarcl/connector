@@ -1,6 +1,6 @@
 {
   "name": "coronncet",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A HTTP client for devs that love low-level communication",
   "main": "dist/index.min.js",
   "module": "dist/es/index.es.js",

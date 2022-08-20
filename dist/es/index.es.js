@@ -242,7 +242,6 @@ class HTTPClient extends HTTPConnection {
   get(url) {
     return __awaiter(this, void 0, void 0, function* () {
       if (!this.connected) throw new Error("Must be connected to send request");
-      console.log("sending request");
       let request = this.formatRequest("GET", url, this.headers);
       this.send(Buffer.from(request, 'ascii'));
       const response = yield this.recive('GET');
